@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8097" doc:name="HTTP Listener Configuration"/>
+    <db:oracle-config name="Oracle_Configuration" host="localhost" port="1521" instance="XE" user="system" password="system" doc:name="Oracle Configuration"/>
+    <flow name="dyanamicwebprojectFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/h" doc:name="HTTP"/>
+        <parse-template location="loginpage\login.html" doc:name="Parse Template"/>
+        <logger level="INFO" doc:name="Logger"/>
+    </flow>
+    <flow name="dyanamicwebprojectFlow1">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/ht" doc:name="HTTP"/>
+        <set-variable variableName="username" value="#[message.inboundProperties.'http.query.params'.username]" doc:name="Variable"/>
+        <set-variable variableName="password" value="#[message.inboundProperties.'http.query.params'.password]" doc:name="Variable"/>
+        <db:insert config-ref="Oracle_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[insert into dbb(username,password) values(#[flowVars.username],#[flowVars.password])]]></db:parameterized-query>
+        </db:insert>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <logger level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>
